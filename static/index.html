@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Movie Recommandation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+<script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
+<script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
+</head>
+<body>
+    <div class="navbar">
+        <div class="navbar-inner">
+            <a class="brand" href="#">Movie Recommandation</a>
+        </div>
+    </div>
+    <div id="main" class="container">
+   <form>  
+   User ID: <input type="text" name="UserID" id="UserID" value = "2" />
+   <input type="button" name="button1" value="Get Top 10 Movies" onclick="getTop()" />
+Movie ID: <input type="text" name="MovieId" id="MovieID" value = "2" />
+   <input type="button" name="button2" value="Get Score for This Movie" onclick="getScore()" />  
+  </form>
+        <table class="table table-striped">
+            <tr></td><td><b>Movie</b></td><td><b>Score</b></td><td><b>Ratings Count</b></td></tr>
+            <!-- ko foreach: movies -->
+            <tr>
+                <td><p><b data-bind="text: name"></b></p></td>
+                <td><p><b data-bind="text: score"></b></p></td>
+                <td><p><b data-bind="text: other"></b></p></td>                          
+            </tr>
+            <!-- /ko -->
+        </table>
+        <button class="btn">Refresh</button>
+    </div>
+    <script type="text/javascript">
+        function TopMovies() {
+            var self = this;
+            self.moviesURI = 'http://localhost:5000/'+document.getElementById("UserID").value+'/ratings/top/10';
+            self.movies = ko.observableArray();
+            self.ajax = function(uri, method, data) {
+		var request = {
+			url: uri,
+			type: method,
+			contentType: "application/json",
+			accepts: "application/json",
+			cache: false,
+			dataType: 'json',
+			data: JSON.stringify(data),
+                        beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Authorization", 
+                            "Basic " + btoa(self.username + ":" + self.password));
+                        },
+			error: function(jqXHR) {
+				console.log("ajax error " + jqXHR.status);
+			}
+		};
+		return $.ajax(request);
+	     }
+
+             self.ajax(self.moviesURI, 'GET').done(function(data) {
+		for (var i = 0; i < data.movies.length; i++) {
+			self.movies.push({
+				name: ko.observable(data.movies[i].name),
+				score: ko.observable(data.movies[i].score),
+				other: ko.observable(data.movies[i].other),
+			});
+		}
+	     });
+        }
+        function MovieScore() {
+            var self = this;
+            self.moviesURI = 'http://localhost:5000/'+document.getElementById("UserID").value+'/ratings/'+document.getElementById("MovieID").value;
+            self.movies = ko.observableArray();
+            self.ajax = function(uri, method, data) {
+		var request = {
+			url: uri,
+			type: method,
+			contentType: "application/json",
+			accepts: "application/json",
+			cache: false,
+			dataType: 'json',
+			data: JSON.stringify(data),
+                        beforeSend: function (xhr) {
+                        xhr.setRequestHeader("Authorization", 
+                            "Basic " + btoa(self.username + ":" + self.password));
+                        },
+			error: function(jqXHR) {
+				console.log("ajax error " + jqXHR.status);
+			}
+		};
+		return $.ajax(request);
+	     }
+
+             self.ajax(self.moviesURI, 'GET').done(function(data) {
+                //alert("1");
+		alert("Movie:"+data.movies[0].name+"     Score:"+data.movies[0].score);
+	     });
+             
+        }
+        function getTop(){
+            ko.applyBindings(new TopMovies(), $('#main')[0]);
+        }
+        function getScore(){
+           ko.applyBindings(new MovieScore(), $('#main')[0]);
+        }
+        function print(){
+            alert("1");
+        }
+    </script>
+</body>
+</html>
