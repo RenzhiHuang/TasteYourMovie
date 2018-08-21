@@ -1,25 +1,26 @@
 <!DOCTYPE html>
+
 <html>
 <head>
-<title>Movie Recommandation</title>
+<title>Taste Your Movie</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
 <script src="http://ajax.aspnetcdn.com/ajax/jquery/jquery-1.9.0.js"></script>
 <script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 <script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.2.1.js"></script>
 </head>
-<body>
+<body style="background-image:url(images/p1.jpg);background-size: cover;">
     <div class="navbar">
         <div class="navbar-inner">
-            <a class="brand" href="#">Movie Recommandation</a>
+            <a class="brand" href="#"><b>Taste Your Movie</b> <font size=" 2">- know what you think about movie</font></a>
         </div>
     </div>
     <div id="main" class="container">
    <form>  
-   User ID: <input type="text" name="UserID" id="UserID" value = "2" />
-   <input type="button" name="button1" value="Get Top 10 Movies" onclick="getTop()" />
-Movie ID: <input type="text" name="MovieId" id="MovieID" value = "2" />
-   <input type="button" name="button2" value="Get Score for This Movie" onclick="getScore()" />  
+   <b>User ID:</b> <input type="text" name="UserID" id="UserID" value = "2" />
+   <input type="button" name="button1" value="Get Top 10 Movies" onclick="TopMovies.update()" />
+<b>Movie ID:</b> <input type="text" name="MovieId" id="MovieID" value = "2" />
+   <input type="button" name="button2" value="Get Score for This Movie" onclick="MovieScore()" />  
   </form>
         <table class="table table-striped">
             <tr></td><td><b>Movie</b></td><td><b>Score</b></td><td><b>Ratings Count</b></td></tr>
@@ -31,14 +32,24 @@ Movie ID: <input type="text" name="MovieId" id="MovieID" value = "2" />
             </tr>
             <!-- /ko -->
         </table>
-        <button class="btn">Refresh</button>
+  
     </div>
     <script type="text/javascript">
-        function TopMovies() {
-            var self = this;
-            self.moviesURI = 'http://localhost:5000/'+document.getElementById("UserID").value+'/ratings/top/10';
-            self.movies = ko.observableArray();
-            self.ajax = function(uri, method, data) {
+        var TopMovies = {
+           movies:ko.observableArray(),
+           print:function(){
+                alert("1");
+                for (var i = 0; i < 10; i++) {
+                this.movies.push({
+                             name: ko.observable("name"),
+				score: ko.observable("score"),
+				other: ko.observable("other"),
+             });
+}
+           },
+            //self.movies.removeAll();
+            //self.update=function(){
+           ajax: function(uri, method, data) {
 		var request = {
 			url: uri,
 			type: method,
@@ -56,22 +67,31 @@ Movie ID: <input type="text" name="MovieId" id="MovieID" value = "2" />
 			}
 		};
 		return $.ajax(request);
-	     }
+	     },
 
-             self.ajax(self.moviesURI, 'GET').done(function(data) {
+             update:function(){
+             this.movies.removeAll();
+             var moviesURI = 'http://localhost:5000/'+document.getElementById("UserID").value+'/ratings/top/10';
+             var data = this.ajax(moviesURI, 'GET').done(function(data) {
+                //alert(data.movies.length);
 		for (var i = 0; i < data.movies.length; i++) {
-			self.movies.push({
+                        //document.write("Movie:"+data.movies[i].name+"Score:"+data.movies[i].score);
+			TopMovies.movies.push(
+                              {
 				name: ko.observable(data.movies[i].name),
 				score: ko.observable(data.movies[i].score),
 				other: ko.observable(data.movies[i].other),
-			});
+			      }
+                        );
 		}
 	     });
-        }
+             }       
+        };
         function MovieScore() {
             var self = this;
             self.moviesURI = 'http://localhost:5000/'+document.getElementById("UserID").value+'/ratings/'+document.getElementById("MovieID").value;
-            self.movies = ko.observableArray();
+            //self.movies = ko.observableArray();
+            //self.movies.removeAll();
             self.ajax = function(uri, method, data) {
 		var request = {
 			url: uri,
@@ -94,16 +114,15 @@ Movie ID: <input type="text" name="MovieId" id="MovieID" value = "2" />
 
              self.ajax(self.moviesURI, 'GET').done(function(data) {
                 //alert("1");
-		alert("Movie:"+data.movies[0].name+"     Score:"+data.movies[0].score);
+		alert("Movie:"+data.movies[0].name+"Score:"+data.movies[0].score);
 	     });
              
         }
-        function getTop(){
-            ko.applyBindings(new TopMovies(), $('#main')[0]);
-        }
-        function getScore(){
-           ko.applyBindings(new MovieScore(), $('#main')[0]);
-        }
+        //function getTop(){
+        //ko.cleanNode();
+
+        ko.applyBindings(TopMovies);
+        //}
         function print(){
             alert("1");
         }
